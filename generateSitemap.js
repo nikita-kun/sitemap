@@ -11,11 +11,15 @@ function generateSitemap() {
     const document = dom.window.document;
     const urls = new Set();
 
-    document.querySelectorAll('a, summary').forEach(anchor => {
-        const href = anchor.tagName == 'a' ? anchor.getAttribute('href') : `/${anchor.textContent}`;
-        if (href && !href.includes('#') && !href.startsWith('http')) {
+    document.querySelectorAll('a').forEach(anchor => {
+        const href = anchor.getAttribute('href');
+        if (href.startsWith('/') && !href.includes('#')) {
             urls.add(`https://nikita-kun.github.io${href}`);
         }
+    });
+    document.querySelectorAll('summary').forEach(anchor => {
+        const href = anchor.textContent;
+        urls.add(`https://nikita-kun.github.io/?${href}`);
     });
 
     const sitemap = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n` +
