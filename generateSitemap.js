@@ -3,7 +3,7 @@ const cheerio = require('cheerio');
 const fs = require('fs');
 const path = require('path');
 
-const url = 'https://example.com/';
+const url = 'https://nikita-kun.github.io/';
 
 async function generateSitemap() {
     const response = await axios.get(url);
@@ -25,4 +25,4 @@ async function generateSitemap() {
     fs.writeFileSync(path.join(deployDir, 'sitemap.xml'), sitemap);
 }
 
-await generateSitemap();
+generateSitemap();
