@@ -1,0 +1,57 @@
+name: Deploy sitemap to Pages
+
+on:
+  push:
+    branches: ["main"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download webpage
+        run: |
+          curl -o index.html https://nikita-kun.github.io/
+
+      - name: Generate sitemap
+        run: |
+          mkdir -p deploy
+          echo "const fs = require('fs');" > generateSitemap.js
+          echo "const cheerio = require('cheerio');" >> generateSitemap.js
+          echo "const html = fs.readFileSync('index.html', 'utf8');" >> generateSitemap.js
+          echo "const $ = cheerio.load(html);" >> generateSitemap.js
+          echo "const urls = new Set([location.href]);" >> generateSitemap.js
+          echo "$('a').each(function() {" >> generateSitemap.js
+          echo "  const href = $(this).attr('href');" >> generateSitemap.js
+          echo "  if (!href.includes('#') && (href.startsWith('https://nikita-kun.github.io') || !href.startsWith('http'))) urls.add(href);" >> generateSitemap.js
+          echo "});" >> generateSitemap.js
+          echo "const sitemap = `<?xml version='1.0' encoding='UTF-8'?><urlset xmlns='http://www.sitemaps.org/schemas/sitemap/0.9'>` + Array.from(urls).map(function(url) { return `<url><loc>${url}</loc><changefreq>weekly</changefreq></url>`; }).join('\\n') + `</urlset>`;" >> generateSitemap.js
+          echo "fs.writeFileSync('deploy/sitemap.xml', sitemap);" >> generateSitemap.js
+          node generateSitemap.js
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: 'deploy'
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
