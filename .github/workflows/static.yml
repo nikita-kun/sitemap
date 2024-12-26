@@ -31,7 +31,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          npm install cheerio
+          npm install axios cheerio fs
 
       - name: Generate sitemap
         run: |
