@@ -31,10 +31,11 @@ jobs:
 
       - name: Install dependencies
         run: |
-          npm install axios cheerio fs
+          npm install fs jsdom
 
       - name: Generate sitemap
         run: |
+          curl -o index.html https://nikita-kun.github.io
           node generateSitemap.js
 
       - name: Setup Pages
