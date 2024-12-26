@@ -3,6 +3,8 @@ name: Deploy sitemap to Pages
 on:
   push:
     branches: ["main"]
+  schedule:
+    - cron: '40 14 * * *'  # This runs the workflow every day at midnight UTC
   workflow_dispatch:
 
 permissions:
