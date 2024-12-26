@@ -11,8 +11,8 @@ function generateSitemap() {
     const document = dom.window.document;
     const urls = new Set();
 
-    document.querySelectorAll('a').forEach(anchor => {
-        const href = anchor.getAttribute('href');
+    document.querySelectorAll('a, summary').forEach(anchor => {
+        const href = anchor.tagName == 'a' ? anchor.getAttribute('href') : `/${anchor.textContent}`;
         if (href && !href.includes('#') && !href.startsWith('http')) {
             urls.add(`https://nikita-kun.github.io${href}`);
         }
