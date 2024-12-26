@@ -3,7 +3,7 @@ const cheerio = require('cheerio');
 const fs = require('fs');
 const path = require('path');
 
-const url = 'https://nikita-kun.github.io/;
+const url = 'https://nikita-kun.github.io/';
 
 async function generateSitemap() {
     const response = await axios.get(url, { responseType: 'stream' });
