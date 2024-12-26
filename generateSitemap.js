@@ -1,41 +1,31 @@
-const axios = require('axios');
-const cheerio = require('cheerio');
 const fs = require('fs');
 const path = require('path');
 
-const url = 'https://nikita-kun.github.io/';
+const htmlFilePath = path.join(__dirname, 'index.html');
+const outputFilePath = path.join(__dirname, 'deploy', 'sitemap.xml');
 
-async function generateSitemap() {
-    const response = await axios.get(url, { responseType: 'stream' });
-    let html = '';
+function generateSitemap() {
+    const html = fs.readFileSync(htmlFilePath, 'utf-8');
+    const urls = new Set();
 
-    response.data.on('data', chunk => {
-        html += chunk.toString();
-    });
+    // Simple regex to extract href attributes from <a> tags
+    const regex = /<a[^>]+href="([^"]+)"[^>]*>/g;
+    let match;
 
-    response.data.on('end', () => {
-        const $ = cheerio.load(html);
-        const urls = new Set();
+    while ((match = regex.exec(html)) !== null) {
+        const href = match[1];
+        if (href && !href.includes('#') && (href.startsWith('https://example.com') || !href.startsWith('http'))) {
+            urls.add(href);
+        }
+    }
 
-        $('a').each((_, element) => {
-            const href = $(element).attr('href');
-            if (href && !href.includes('#') && (href.startsWith(url) || !href.startsWith('http'))) {
-                urls.add(href);
-            }
-        });
+    const sitemap = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n` +
+        Array.from(urls).map(url => `<url><loc>${url}</loc><changefreq>${url === 'https://example.com/' ? 'daily' : 'weekly'}</changefreq></url>`).join('\n') + `\n</urlset>`;
 
-        const sitemap = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n` +
-            Array.from(urls).map(url => `<url><loc>${url}</loc><changefreq>${url === url ? 'daily' : 'weekly'}</changefreq></url>`).join('\n') + `\n</urlset>`;
-
-        const deployDir = path.join(__dirname, 'deploy');
-        if (!fs.existsSync(deployDir)) fs.mkdirSync(deployDir);
-        fs.writeFileSync(path.join(deployDir, 'sitemap.xml'), sitemap);
-        console.log('Sitemap generated successfully!');
-    });
-
-    response.data.on('error', error => {
-        console.error('Error processing stream:', error);
-    });
+    const deployDir = path.join(__dirname, 'deploy');
+    if (!fs.existsSync(deployDir)) fs.mkdirSync(deployDir);
+    fs.writeFileSync(outputFilePath, sitemap);
+    console.log('Sitemap generated successfully!');
 }
 
 generateSitemap();
